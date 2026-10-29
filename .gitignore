@@ -1,0 +1,7 @@
+# Python sanal ortamı (her makinede yeniden kurulur)
+venv/
+__pycache__/
+*.pyc
+
+# Sunucunun çalışırken ürettiği kayıtlar
+kayitlar/

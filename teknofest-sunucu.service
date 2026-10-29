@@ -1,0 +1,25 @@
+# Raspberry Pi açılınca test sunucusunu otomatik başlatır.
+# "simurg" yazan 3 yeri Pi'deki kendi kullanıcı adınızla değiştirin.
+#
+# Kurulum:
+#   sudo cp teknofest-sunucu.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now teknofest-sunucu
+# Canlı kayıt izleme:
+#   journalctl -u teknofest-sunucu -f
+
+[Unit]
+Description=TEKNOFEST Savasan IHA test yarisma sunucusu
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=simurg
+WorkingDirectory=/home/simurg/teknofest_test_sunucusu
+ExecStart=/home/simurg/teknofest_test_sunucusu/venv/bin/python sunucu.py --ayarlar ayarlar.yaml
+Environment=PYTHONUNBUFFERED=1
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,70 @@
+# TEKNOFEST Savaşan İHA test sunucusu ayarları
+# Değiştirdikten sonra sunucuyu yeniden başlatın.
+
+# 0.0.0.0 = ağdaki tüm cihazlardan bağlantı kabul et
+host: 0.0.0.0
+port: 5000
+
+# Boş bırakılırsa her açılışta rastgele üretilir (yeniden başlatınca
+# takımların oturumu düşer -> 401 -> yeniden giriş testi için faydalı).
+gizli_anahtar: ""
+
+kayit_klasoru: kayitlar
+
+# Sunucunun cevap vermeden önce bekleyeceği rastgele süre (ms), [en az, en çok].
+# Yer istasyonunun zaman aşımı davranışını denemek için örn. [50, 600] yapın.
+yapay_gecikme_ms: [0, 0]
+
+# Açılırsa her takım yalnızca aşağıda "ip" alanında yazan adresten bağlanabilir.
+# Yarışmadaki "tek IP" kuralını denemek için.
+ip_kontrolu: false
+
+takimlar:
+  - takim_numarasi: 1
+    kadi: atasimurg
+    sifre: simurg2026
+    ip: 192.168.1.10
+  - takim_numarasi: 2
+    kadi: deneme2
+    sifre: deneme2
+    ip: 192.168.1.11
+
+# Panelden HSS duyurusu yapmak için
+hakem:
+  kadi: hakem
+  sifre: hakem123
+
+# Sahte rakiplerin etrafında döndüğü nokta [enlem, boylam]
+saha_merkezi: [41.5100, 36.1190]
+
+# Telemetri cevabında "konumBilgileri" içinde görünecek sahte uçaklar
+sahte_rakipler:
+  - takim_numarasi: 101
+    yaricap_m: 180
+    hiz_ms: 22
+    irtifa_m: 60
+    faz_derece: 0
+    saat_yonunde: true
+  - takim_numarasi: 102
+    yaricap_m: 260
+    hiz_ms: 26
+    irtifa_m: 80
+    faz_derece: 120
+    saat_yonunde: false
+  - takim_numarasi: 103
+    yaricap_m: 120
+    hiz_ms: 18
+    irtifa_m: 45
+    faz_derece: 240
+    saat_yonunde: true
+
+qr:
+  enlem: 41.51238882
+  boylam: 36.11935778
+  metin: teknofest2026
+
+# Hakem panelden "Duyur" deyince /api/hss_koordinatlari bunları döner
+hss:
+  - {enlem: 41.5115, boylam: 36.1170, yaricap_m: 50}
+  - {enlem: 41.5085, boylam: 36.1215, yaricap_m: 75}
+  - {enlem: 41.5092, boylam: 36.1160, yaricap_m: 150}
