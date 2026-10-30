@@ -23,11 +23,11 @@ takimlar:
   - takim_numarasi: 1
     kadi: atasimurg
     sifre: simurg2026
-    ip: 192.168.1.10
+    ip: 192.168.50.10
   - takim_numarasi: 2
     kadi: deneme2
     sifre: deneme2
-    ip: 192.168.1.11
+    ip: 192.168.50.11
 
 # Panelden HSS duyurusu yapmak için
 hakem:

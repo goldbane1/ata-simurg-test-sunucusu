@@ -5,3 +5,6 @@ __pycache__/
 
 # Sunucunun çalışırken ürettiği kayıtlar
 kayitlar/
+
+# ag_ayarla.sh'nin aldığı ayar yedekleri
+ayarlar.yaml.yedek_*

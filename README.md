@@ -27,6 +27,8 @@ bir sunucuya karşı deneyebilirsiniz.
 | `istemci_test.py` | Sunucuyu deneyen istemci; aynı zamanda yer istasyonu için örnek kod |
 | `requirements.txt` | Gerekli Python paketleri |
 | `teknofest-sunucu.service` | Pi açılınca sunucuyu otomatik başlatma dosyası |
+| `ag_ayarla.sh` | Pi'nin IP'sini ve sunucu portunu tek komutla ayarlar |
+| `SAHA_TESTI.md` | Switch kurulumu ve YKİ yazılımını test sunucusuna bağlama rehberi |
 
 ---
 
@@ -42,14 +44,14 @@ Yarışmada yer bilgisayarınız organizasyonun verdiği kabloyla hakem sunucusu
 Testte bu sunucunun yerini Raspberry Pi alır:
 
 ```
-Yer bilgisayarı (192.168.1.10) ──┐
-                                 ├── Takım switch'i ── Raspberry Pi (192.168.1.25:5000)
+Yer bilgisayarı (192.168.50.10) ──┐
+                                 ├── Takım switch'i ── Raspberry Pi (192.168.50.25:5000)
 Doodle Labs yer radyosu ─────────┘                      "hakem sunucusu" rolünde
 ```
 
 > **Not:** Dokümandaki `http://127.0.0.25:5000` sadece adres **biçimine** örnektir.
 > `127.x.x.x` adresleri bilgisayarın kendisini gösterir ve başka bir cihazdan erişilemez.
-> Testte Pi'nin gerçek ağ adresini (ör. `192.168.1.25`) kullanın.
+> Testte Pi'nin gerçek ağ adresini (ör. `192.168.50.25`) kullanın.
 
 ## 3. Kurulum
 
@@ -94,24 +96,25 @@ sudo systemctl restart teknofest-sunucu
 
 ### 3.3 Pi'ye sabit IP verin
 
-Sahada modem olmayacağı için Pi'nin adresi sabit olmalı. Pi'nin içinde:
+Sahada modem olmayacağı için Pi'nin ethernet adresi sabit olmalı. Bunu `ag_ayarla.sh`
+script'i yapar (ayrıntılar: **3.7 Ağ ayarı script'i**). Pi'nin içinde:
 
 ```bash
-nmcli con show
-# Kablolu bağlantının adını bulun (genelde "Wired connection 1")
-
-sudo nmcli con mod "Wired connection 1" ipv4.method manual ipv4.addresses 192.168.1.25/24
-sudo nmcli con up "Wired connection 1"
+cd ~/teknofest_test_sunucusu
+chmod +x ag_ayarla.sh                       # ilk seferde: çalıştırılabilir yap
+sudo ./ag_ayarla.sh --ip 192.168.50.25/24
 ```
 
-Bu komuttan sonra SSH bağlantınız kopar; bundan sonra Pi'ye `ssh simurg@192.168.1.25` ile
-bağlanırsınız.
+Test ağı için bilerek `192.168.50.x` seçildi: ev modemleri genelde `192.168.1.x` veya
+`192.168.0.x` kullanır; Pi'nin Wi-Fi'si ve ethernet'i aynı aralıkta olursa paketler karışır.
+Ağ geçidi verilmediği için Pi internete Wi-Fi'den çıkmaya devam eder ve Wi-Fi üzerinden
+kurduğunuz SSH bağlantısı kopmaz.
 
 ### 3.4 Yer bilgisayarına sabit IP verin
 
 Yer bilgisayarının ethernetine elle adres verin:
 
-- IP: `192.168.1.10`
+- IP: `192.168.50.10`
 - Alt ağ maskesi: `255.255.255.0`
 - Ağ geçidi ve DNS: boş
 
@@ -125,16 +128,16 @@ testte de aynı şekilde deneyin.
 Yer bilgisayarından:
 
 ```bash
-ping 192.168.1.25
+ping 192.168.50.25
 ```
 
-Tarayıcıda hakem panelini açın: `http://192.168.1.25:5000/panel`
+Tarayıcıda hakem panelini açın: `http://192.168.50.25:5000/panel`
 
 Sonra tüm uç noktaları otomatik deneyin:
 
 ```bash
 pip install requests
-python istemci_test.py --sunucu http://192.168.1.25:5000 kontrol
+python istemci_test.py --sunucu http://192.168.50.25:5000 kontrol
 ```
 
 Beklenen sonuç: `Sonuç: 19/19 kontrol başarılı`
@@ -157,6 +160,38 @@ journalctl -u teknofest-sunucu -f
 
 Artık Pi'yi switch'e takıp açmanız yeterli; sunucu kendiliğinden başlar.
 
+### 3.7 Ağ ayarı script'i (`ag_ayarla.sh`)
+
+Pi'nin ethernet IP'sini ve sunucunun portunu tek komutla değiştirir, servisi yeniden başlatır
+ve sunucunun yeni ayarla cevap verdiğini kontrol eder. Arayüz ekibi sunucuya farklı bir
+adres veya porttan bağlanacaksa ya da yarışma günü verilen IP'yi denemek istiyorsanız bunu
+kullanın.
+
+| Komut | Ne yapar |
+| --- | --- |
+| `./ag_ayarla.sh --durum` | Mevcut IP, port, servis durumu ve panel adresini gösterir. `sudo` gerekmez |
+| `sudo ./ag_ayarla.sh` | Soru sorarak ayarlar; boş bıraktığınız değer değişmez |
+| `sudo ./ag_ayarla.sh --ip 192.168.50.25/24` | Sadece ethernet IP'sini değiştirir |
+| `sudo ./ag_ayarla.sh --port 8080` | Sadece portu değiştirir |
+| `sudo ./ag_ayarla.sh --ip 10.0.0.25/24 --port 5000` | İkisini birlikte değiştirir |
+| `sudo ./ag_ayarla.sh --ip 10.0.0.25/24 --gateway 10.0.0.1` | Ağ geçidiyle birlikte (çoğu test ağında gerekmez) |
+| `sudo ./ag_ayarla.sh --dhcp` | Ethernet'i tekrar otomatik IP'ye döndürür |
+| `./ag_ayarla.sh --ip 10.0.0.25/24 --deneme` | Hiçbir şeyi değiştirmeden ne yapılacağını gösterir |
+
+Bilmeniz gerekenler:
+
+- **IP biçimi:** Sonunda `/24` gibi ağ maskesiyle yazılır. `127.x.x.x` kabul edilmez; o adres
+  başka cihazdan erişilemez.
+- **Port:** 1024–65535 arası olmalı. 1024 altı portlar yönetici yetkisi ister.
+- **Yedek:** Port değişmeden önce `ayarlar.yaml.yedek_TARİH` adıyla yedek alınır. Bir şey
+  ters giderse yedeği `ayarlar.yaml` adıyla geri kopyalayıp servisi yeniden başlatın.
+- **`git pull` ile çakışma:** Script `ayarlar.yaml`'ı değiştirdiği için kod güncellenirken Git
+  "yerel değişiklik var" diyebilir. Bu durumda `git stash`, `git pull`, `git stash pop`
+  sırasıyla çalıştırın.
+- **Script ne yapar:** `test-agi` adında bir NetworkManager profili oluşturur veya günceller.
+  Profil açılışta otomatik devreye girer, Pi'deki hazır DHCP profilinin önüne geçer. Ağ geçidi
+  verilmezse internet yolu olarak kullanılmaz, yani Wi-Fi interneti bozulmaz.
+
 ---
 
 ## 4. Kullanım
@@ -171,7 +206,7 @@ Artık Pi'yi switch'e takıp açmanız yeterli; sunucu kendiliğinden başlar.
 
 ### Hakem paneli
 
-`http://192.168.1.25:5000/panel` adresi her saniye yenilenir.
+`http://192.168.50.25:5000/panel` adresi her saniye yenilenir.
 
 | Sütun | Ne anlama gelir |
 | --- | --- |
@@ -192,7 +227,7 @@ ve red nedeni satır satır yazılır. Uçuş sonrası "neden reddedildi?" sorus
 ### Uçuş modu (örnek yer istasyonu)
 
 ```bash
-python istemci_test.py --sunucu http://192.168.1.25:5000 ucus --sure 60
+python istemci_test.py --sunucu http://192.168.50.25:5000 ucus --sure 60
 ```
 
 Bu mod gerçek yer istasyonu gibi davranır ve sizin yazılımınız için **örnek kod** olarak
