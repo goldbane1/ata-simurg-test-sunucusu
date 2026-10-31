@@ -137,7 +137,8 @@ def kontrol(args):
     ok = dene("Doğru giriş -> 200 + takım no", 200,
               lambda: s.post(url + "/api/giris", json={"kadi": args.kadi, "sifre": args.sifre}, timeout=2))
     if not ok:
-        print("\nGiriş yapılamadı, kullanıcı adı/şifreyi kontrol edin.")
+        print("\nGiriş yapılamadı. 400 ise kullanıcı adı/şifreyi, 403 ise IP iznini "
+              "(ayarlar.yaml → ip_kontrolu) kontrol edin.")
         return
     takim_no = int(s.post(url + "/api/giris", json={"kadi": args.kadi, "sifre": args.sifre},
                           timeout=2).text)
